@@ -1,0 +1,21 @@
+{
+  "name": "saavn-nodejs-wrapper",
+  "version": "1.0.0",
+  "description": "An unofficial node js wrapper",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js",
+    "start-server": "node app.js"
+  },
+  "author": "Adhithyakrishna",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^1.19.4"
+  },
+  "dependencies": {
+    "axios": "^0.19.2",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3"
+  }
+}
