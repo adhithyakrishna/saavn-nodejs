@@ -11,7 +11,8 @@
   "author": "Adhithyakrishna",
   "license": "ISC",
   "devDependencies": {
-    "nodemon": "^1.19.4"
+    "nodemon": "^1.19.4",
+    "redis": "^3.0.2"
   },
   "dependencies": {
     "axios": "^0.19.2",

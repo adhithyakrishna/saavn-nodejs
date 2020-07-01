@@ -1,6 +1,7 @@
 const axios = require('axios');
 const e = require('express');
 const util = require('../util/processResponse');
+const client = require('../util/redis');
 
 exports.getAutoCompleteResults = (req, res, next) => {
 
@@ -72,63 +73,83 @@ exports.getAlbumSearchResults = (req, res, next) => {
 
 exports.getSongsFromAlbum = (req, res, next) => {
 
-	axios.get('https://www.saavn.com/api.php?__call=webapi.get', {
-		params: {
-			_marker: 0,
-			includeMetaTags: 0,
-			type: "album",
-			token: req.params.id,
-			ctx: "android",
-			api_version: 4,
-			_format: "json"
+	let inputParam = req.params.id;
+	client.redisClient.get(inputParam, function (err, data) {
+		if (data != null && err == null) {
+			res.set(200).send(JSON.parse(data));
+		} else {
+			axios.get('https://www.saavn.com/api.php?__call=webapi.get', {
+				params: {
+					_marker: 0,
+					includeMetaTags: 0,
+					type: "album",
+					token: inputParam,
+					ctx: "android",
+					api_version: 4,
+					_format: "json"
+				}
+			}).then(function (response) {
+				let responseObj = util.processResult(response, false);
+				res.status(response.status);
+				res.send(responseObj);
+				if(client.isConnected)
+					client.redisClient.set(inputParam, JSON.stringify(responseObj));
+			}).catch(function () {
+				res.status(500).send({ 'error': 'Internal server error' });
+			});
 		}
-	}).then(function (response) {
-		let responseObj = util.processResult(response, false);
-		res.status(response.status);
-		res.send(responseObj);
-	}).catch(function () {
-		res.status(500).send({ 'error': 'Internal server error' });
 	});
 };
 
 exports.getsongId = (req, res, next) => {
 
-	axios.get('https://www.saavn.com/api.php?__call=webapi.get', {
-		params: {
-			_marker: 0,
-			includeMetaTags: 0,
-			type: "song",
-			token: req.params.id,
-			ctx: "android",
-			api_version: 4,
-			_format: "json"
-		}
-	}).then(function (response) {
-		res.status(response.status);
-		if (response.status == 200) {
-			if (typeof response.data == "object" && Array.isArray(response.data)) {
-				if (response.data.length == 0) {
-					response.data = { "message": "song not found!" };
+	let inputParam = req.params.id;
+
+	client.redisClient.get(inputParam, function (err, data) {
+
+		if (data != null && err == null) {
+			res.set(200).send(JSON.parse(data));
+		} else {
+			axios.get('https://www.saavn.com/api.php?__call=webapi.get', {
+				params: {
+					_marker: 0,
+					includeMetaTags: 0,
+					type: "song",
+					token: req.params.id,
+					ctx: "android",
+					api_version: 4,
+					_format: "json"
 				}
-				res.send({ 'response': response.data });
-			}
-			else {
-				return axios.get('https://www.jiosaavn.com/api.php?__call=song.getDetails', {
-					params: {
-						cc: "in",
-						_marker: 0,
-						_format: "json",
-						model: "Redmi_5A",
-						pids: Object.keys(response.data)[0]
+			}).then(function (response) {
+				res.status(response.status);
+				if (response.status == 200) {
+					if (typeof response.data == "object" && Array.isArray(response.data)) {
+						if (response.data.length == 0) {
+							response.data = { "message": "song not found!" };
+						}
+						res.send({ 'response': response.data });
 					}
-				})
-			}
+					else {
+						return axios.get('https://www.jiosaavn.com/api.php?__call=song.getDetails', {
+							params: {
+								cc: "in",
+								_marker: 0,
+								_format: "json",
+								model: "Redmi_5A",
+								pids: Object.keys(response.data)[0]
+							}
+						})
+					}
+				}
+			}).then(function (response) {
+				let responseObj = util.processResult(response, true);
+				res.status(response.status);
+				res.send(responseObj);
+				if(client.isConnected)
+					client.redisClient.set(inputParam, JSON.stringify(responseObj));
+			}).catch(function (error) {
+				res.status(500).send({ 'error': 'Internal server error' });
+			});
 		}
-	}).then(function (response) {
-		let responseObj = util.processResult(response, true);
-		res.status(response.status);
-		res.send(responseObj);
-	}).catch(function (error) {
-		res.status(500).send({ 'error': 'Internal server error' });
 	});
 }
