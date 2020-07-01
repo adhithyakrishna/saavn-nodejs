@@ -14,7 +14,7 @@
     "nodemon": "^1.19.4"
   },
   "dependencies": {
-    "axios": "^0.19.2",    
+    "axios": "^0.19.2",
     "express": "^4.16.3"
   }
 }
