@@ -13,7 +13,7 @@ exports.processSearchResult = (response) => {
 	return res;
 }
 
-exports.processResult = (response) => {
+exports.processResult = (response, isSong) => {
 
 	let res = {};
 
@@ -21,6 +21,18 @@ exports.processResult = (response) => {
 	res['message'] = response.statusText;
 	if (response.status == 200) {
 		res['response'] = response.data;
+		if(isSong)
+		{
+			let songId = Object.keys(response.data)[0];
+			if(songId != null)
+			{
+				let mediaUrl = response.data[songId].media_preview_url;
+				mediaUrl = mediaUrl.replace("preview", "h");
+				mediaUrl = mediaUrl.replace("_96_p", "_320");
+				mediaUrl = mediaUrl.replace(".mp4", ".mp3");
+				response.data["media_url"] = mediaUrl;
+			}
+		}
 	}
 	return res;
 }

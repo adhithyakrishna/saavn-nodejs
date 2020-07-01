@@ -83,7 +83,7 @@ exports.getSongsFromAlbum = (req, res, next) => {
 			_format: "json"
 		}
 	}).then(function (response) {
-		let responseObj = util.processSearchResult(response);
+		let responseObj = util.processResult(response, false);
 		res.status(response.status);
 		res.send(responseObj);
 	}).catch(function () {
@@ -125,7 +125,7 @@ exports.getsongId = (req, res, next) => {
 			}
 		}
 	}).then(function (response) {
-		let responseObj = util.processSearchResult(response);
+		let responseObj = util.processResult(response, true);
 		res.status(response.status);
 		res.send(responseObj);
 	}).catch(function (error) {
