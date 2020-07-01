@@ -1,6 +1,6 @@
 const axios = require('axios');
-const { json } = require('body-parser');
 const e = require('express');
+const util = require('../util/processResponse');
 
 exports.getAutoCompleteResults = (req, res, next) => {
 
@@ -12,12 +12,9 @@ exports.getAutoCompleteResults = (req, res, next) => {
 			_format: "json"
 		}
 	}).then(function (response) {
+		let responseObj = util.processSearchRes(response);
 		res.status(response.status);
-		if (response.status == 200) {
-			res.send({ 'response': response.data });
-		} else {
-			res.send({ 'message': response.statusText });
-		}
+		res.send(responseObj);
 	}).catch(function () {
 		res.status(500).send({ 'error': 'Internal server error' });
 	});
@@ -40,12 +37,9 @@ exports.getSongSearchResults = (req, res, next) => {
 			_format: "json"
 		}
 	}).then(function (response) {
+		let responseObj = util.processSearchResult(response);
 		res.status(response.status);
-		if (response.status == 200) {
-			res.send({ 'response': response.data });
-		} else {
-			res.send({ 'message': response.statusText });
-		}
+		res.send(responseObj);
 	}).catch(function () {
 		res.status(500).send({ 'error': 'Internal server error' });
 	});
@@ -67,12 +61,9 @@ exports.getAlbumSearchResults = (req, res, next) => {
 			_format: "json"
 		}
 	}).then(function (response) {
+		let responseObj = util.processSearchResult(response);
 		res.status(response.status);
-		if (response.status == 200) {
-			res.send({ 'response': response.data });
-		} else {
-			res.send({ 'message': response.statusText });
-		}
+		res.send(responseObj);
 	}).catch(function () {
 		res.status(500).send({ 'error': 'Internal server error' });
 	});
@@ -92,20 +83,9 @@ exports.getSongsFromAlbum = (req, res, next) => {
 			_format: "json"
 		}
 	}).then(function (response) {
+		let responseObj = util.processSearchResult(response);
 		res.status(response.status);
-		if (response.status == 200) {
-			if (typeof response.data == "object" && Array.isArray(response.data)) {
-				if (response.data.length == 0) {
-					response.data = { "message": "song not found!" };
-				}
-			}
-			else {
-				response.data["message"] = response.statusText;
-			}
-			res.send({ 'response': response.data });
-		} else {
-			res.status.send({ 'message': response.statusText });
-		}
+		res.send(responseObj);
 	}).catch(function () {
 		res.status(500).send({ 'error': 'Internal server error' });
 	});
@@ -130,46 +110,25 @@ exports.getsongId = (req, res, next) => {
 				if (response.data.length == 0) {
 					response.data = { "message": "song not found!" };
 				}
+				res.send({ 'response': response.data });
 			}
 			else {
-				response.data["message"] = response.statusText;
+				return axios.get('https://www.jiosaavn.com/api.php?__call=song.getDetails', {
+					params: {
+						cc: "in",
+						_marker: 0,
+						_format: "json",
+						model: "Redmi_5A",
+						pids: Object.keys(response.data)[0]
+					}
+				})
 			}
-			res.send({ 'response': response.data });
-		} else {
-			res.status.send({ 'message': response.statusText });
 		}
+	}).then(function (response) {
+		let responseObj = util.processSearchResult(response);
+		res.status(response.status);
+		res.send(responseObj);
 	}).catch(function (error) {
 		res.status(500).send({ 'error': 'Internal server error' });
 	});
-};
-
-
-exports.getsong = (req, res, next) => {
-
-	axios.get('https://www.jiosaavn.com/api.php?__call=song.getDetails', {
-		params: {
-			cc: "in",
-			_marker: 0,
-			_format: "json",
-			model: "Redmi_5A",
-			pids: req.params.pid
-		}
-	}).then(function (response) {
-		res.status(response.status);
-		if (response.status == 200) {
-			if (typeof response.data == "object" && Array.isArray(response.data)) {
-				if (response.data.length == 0) {
-					response.data = { "message": "song not found!" };
-				}
-			}
-			else {
-				response.data["message"] = response.statusText;
-			}
-			res.send({ 'response': response.data });
-		} else {
-			res.status.send({ 'message': response.statusText });
-		}
-	}).catch(function () {
-		res.status(500).send({ 'error': 'Internal server error' });
-	});
-};
+}
