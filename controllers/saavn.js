@@ -1,5 +1,6 @@
 const axios = require('axios');
 const { json } = require('body-parser');
+const e = require('express');
 
 exports.getAutoCompleteResults = (req, res, next) => {
 
@@ -11,12 +12,14 @@ exports.getAutoCompleteResults = (req, res, next) => {
 			_format: "json"
 		}
 	}).then(function (response) {
-		console.log(response.data);
-		res.send({ 'result': response.data });
-	}).catch(function (error) {
-		if (error.response) {
-			
+		res.status(response.status);
+		if (response.status == 200) {
+			res.send({ 'response': response.data });
+		} else {
+			res.send({ 'message': response.statusText });
 		}
+	}).catch(function () {
+		res.status(500).send({ 'error': 'Internal server error' });
 	});
 };
 
@@ -37,7 +40,14 @@ exports.getSongSearchResults = (req, res, next) => {
 			_format: "json"
 		}
 	}).then(function (response) {
-		res.send({ 'result': response.data });
+		res.status(response.status);
+		if (response.status == 200) {
+			res.send({ 'response': response.data });
+		} else {
+			res.send({ 'message': response.statusText });
+		}
+	}).catch(function () {
+		res.status(500).send({ 'error': 'Internal server error' });
 	});
 };
 
@@ -57,7 +67,14 @@ exports.getAlbumSearchResults = (req, res, next) => {
 			_format: "json"
 		}
 	}).then(function (response) {
-		res.send({ 'result': response.data });
+		res.status(response.status);
+		if (response.status == 200) {
+			res.send({ 'response': response.data });
+		} else {
+			res.send({ 'message': response.statusText });
+		}
+	}).catch(function () {
+		res.status(500).send({ 'error': 'Internal server error' });
 	});
 };
 
@@ -75,7 +92,22 @@ exports.getSongsFromAlbum = (req, res, next) => {
 			_format: "json"
 		}
 	}).then(function (response) {
-		res.send({ 'result': response.data });
+		res.status(response.status);
+		if (response.status == 200) {
+			if (typeof response.data == "object" && Array.isArray(response.data)) {
+				if (response.data.length == 0) {
+					response.data = { "message": "song not found!" };
+				}
+			}
+			else {
+				response.data["message"] = response.statusText;
+			}
+			res.send({ 'response': response.data });
+		} else {
+			res.status.send({ 'message': response.statusText });
+		}
+	}).catch(function () {
+		res.status(500).send({ 'error': 'Internal server error' });
 	});
 };
 
@@ -92,7 +124,22 @@ exports.getsongId = (req, res, next) => {
 			_format: "json"
 		}
 	}).then(function (response) {
-		res.send({ 'result': response.data });
+		res.status(response.status);
+		if (response.status == 200) {
+			if (typeof response.data == "object" && Array.isArray(response.data)) {
+				if (response.data.length == 0) {
+					response.data = { "message": "song not found!" };
+				}
+			}
+			else {
+				response.data["message"] = response.statusText;
+			}
+			res.send({ 'response': response.data });
+		} else {
+			res.status.send({ 'message': response.statusText });
+		}
+	}).catch(function (error) {
+		res.status(500).send({ 'error': 'Internal server error' });
 	});
 };
 
@@ -101,13 +148,28 @@ exports.getsong = (req, res, next) => {
 
 	axios.get('https://www.jiosaavn.com/api.php?__call=song.getDetails', {
 		params: {
-			cc:"in",
+			cc: "in",
 			_marker: 0,
 			_format: "json",
-			model : "Redmi_5A",
+			model: "Redmi_5A",
 			pids: req.params.pid
 		}
 	}).then(function (response) {
-		res.send({ 'result': response.data });
+		res.status(response.status);
+		if (response.status == 200) {
+			if (typeof response.data == "object" && Array.isArray(response.data)) {
+				if (response.data.length == 0) {
+					response.data = { "message": "song not found!" };
+				}
+			}
+			else {
+				response.data["message"] = response.statusText;
+			}
+			res.send({ 'response': response.data });
+		} else {
+			res.status.send({ 'message': response.statusText });
+		}
+	}).catch(function () {
+		res.status(500).send({ 'error': 'Internal server error' });
 	});
 };
